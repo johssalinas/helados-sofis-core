@@ -3,9 +3,9 @@ use rust_decimal::Decimal;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::purchases::domain::entities::*;
 use crate::modules::purchases::domain::repositories::PurchaseRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgPurchaseRepository {
     pool: PgPool,
@@ -20,11 +20,11 @@ impl PgPurchaseRepository {
 #[async_trait]
 impl PurchaseRepository for PgPurchaseRepository {
     async fn find_all(&self) -> Result<Vec<Purchase>, AppError> {
-        Ok(sqlx::query_as::<_, Purchase>(
-            "SELECT * FROM purchases ORDER BY created_at DESC",
+        Ok(
+            sqlx::query_as::<_, Purchase>("SELECT * FROM purchases ORDER BY created_at DESC")
+                .fetch_all(&self.pool)
+                .await?,
         )
-        .fetch_all(&self.pool)
-        .await?)
     }
 
     async fn find_by_id_with_items(&self, id: Uuid) -> Result<Option<PurchaseWithItems>, AppError> {
@@ -42,10 +42,7 @@ impl PurchaseRepository for PgPurchaseRepository {
                 .fetch_all(&self.pool)
                 .await?;
 
-                Ok(Some(PurchaseWithItems {
-                    purchase: p,
-                    items,
-                }))
+                Ok(Some(PurchaseWithItems { purchase: p, items }))
             }
             None => Ok(None),
         }
@@ -134,9 +131,6 @@ impl PurchaseRepository for PgPurchaseRepository {
 
         tx.commit().await?;
 
-        Ok(PurchaseWithItems {
-            purchase,
-            items,
-        })
+        Ok(PurchaseWithItems { purchase, items })
     }
 }

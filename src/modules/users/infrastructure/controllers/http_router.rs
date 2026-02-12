@@ -5,17 +5,28 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use axum::extract::FromRef;
 
+use crate::modules::users::application::{create_user, get_user, list_users, update_user};
+use crate::modules::users::domain::entities::{CreateUserDto, UpdateUserDto, UserResponse};
+use crate::modules::users::domain::repositories::UserRepository;
 use crate::shared::auth::{AppState, AuthUser};
 use crate::shared::errors::AppError;
-use crate::modules::users::application::{create_user, get_user, list_users, update_user};
-use crate::modules::users::domain::entities::{
-    CreateUserDto, UpdateUserDto, UserResponse,
-};
-use crate::modules::users::domain::repositories::UserRepository;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(list_handler, create_handler, get_handler, update_handler, me_handler),
+    components(schemas(
+        crate::modules::users::domain::entities::UserResponse,
+        crate::modules::users::domain::entities::CreateUserDto,
+        crate::modules::users::domain::entities::UpdateUserDto,
+        crate::shared::auth::Role,
+    ))
+)]
+pub struct UsersApiDoc;
 
 /// Estado específico del módulo de usuarios compartido con los handlers.
 #[derive(Clone)]
@@ -25,7 +36,9 @@ pub struct UsersState {
 }
 
 impl FromRef<UsersState> for AppState {
-    fn from_ref(s: &UsersState) -> AppState { s.app.clone() }
+    fn from_ref(s: &UsersState) -> AppState {
+        s.app.clone()
+    }
 }
 
 /// Crea el router del módulo de usuarios.
@@ -45,6 +58,16 @@ pub fn router(app_state: AppState, repo: Arc<dyn UserRepository>) -> Router {
 // ─── Handlers ──────────────────────────────────────────
 
 /// GET /users — Listar todos los usuarios (solo admin+).
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "Usuarios",
+    responses(
+        (status = 200, description = "Lista de usuarios", body = Vec<UserResponse>),
+        (status = 401, description = "No autorizado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn list_handler(
     auth: AuthUser,
     State(state): State<UsersState>,
@@ -56,6 +79,17 @@ async fn list_handler(
 }
 
 /// POST /users — Crear un nuevo usuario (solo owner).
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "Usuarios",
+    request_body = CreateUserDto,
+    responses(
+        (status = 200, description = "Usuario creado", body = UserResponse),
+        (status = 401, description = "No autorizado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn create_handler(
     auth: AuthUser,
     State(state): State<UsersState>,
@@ -67,6 +101,17 @@ async fn create_handler(
 }
 
 /// GET /users/:id — Obtener un usuario por ID.
+#[utoipa::path(
+    get,
+    path = "/{id}",
+    tag = "Usuarios",
+    params(("id" = Uuid, Path, description = "ID del usuario")),
+    responses(
+        (status = 200, description = "Usuario encontrado", body = UserResponse),
+        (status = 404, description = "Usuario no encontrado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn get_handler(
     auth: AuthUser,
     State(state): State<UsersState>,
@@ -78,6 +123,18 @@ async fn get_handler(
 }
 
 /// PUT /users/:id — Actualizar un usuario (solo owner).
+#[utoipa::path(
+    put,
+    path = "/{id}",
+    tag = "Usuarios",
+    params(("id" = Uuid, Path, description = "ID del usuario")),
+    request_body = UpdateUserDto,
+    responses(
+        (status = 200, description = "Usuario actualizado", body = UserResponse),
+        (status = 404, description = "Usuario no encontrado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn update_handler(
     auth: AuthUser,
     State(state): State<UsersState>,
@@ -90,6 +147,16 @@ async fn update_handler(
 }
 
 /// GET /users/me — Obtener datos del usuario autenticado.
+#[utoipa::path(
+    get,
+    path = "/me",
+    tag = "Usuarios",
+    responses(
+        (status = 200, description = "Datos del usuario autenticado", body = UserResponse),
+        (status = 401, description = "No autorizado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn me_handler(
     auth: AuthUser,
     State(state): State<UsersState>,

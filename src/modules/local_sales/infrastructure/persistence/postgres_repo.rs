@@ -3,9 +3,9 @@ use rust_decimal::Decimal;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::local_sales::domain::entities::*;
 use crate::modules::local_sales::domain::repositories::LocalSaleRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgLocalSaleRepository {
     pool: PgPool,

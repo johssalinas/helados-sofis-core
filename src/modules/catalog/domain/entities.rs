@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 // ─── Products ───────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Product {
     pub id: Uuid,
     pub name: String,
@@ -16,12 +16,12 @@ pub struct Product {
     pub modified_by: Option<Uuid>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateProductDto {
     pub name: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateProductDto {
     pub name: Option<String>,
     pub active: Option<bool>,
@@ -29,7 +29,7 @@ pub struct UpdateProductDto {
 
 // ─── Flavors ────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Flavor {
     pub id: Uuid,
     pub name: String,
@@ -39,13 +39,13 @@ pub struct Flavor {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateFlavorDto {
     pub name: String,
     pub product_id: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateFlavorDto {
     pub name: Option<String>,
     pub active: Option<bool>,
@@ -53,7 +53,7 @@ pub struct UpdateFlavorDto {
 
 // ─── Providers ──────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Provider {
     pub id: Uuid,
     pub name: String,
@@ -63,13 +63,13 @@ pub struct Provider {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateProviderDto {
     pub name: String,
     pub contact_info: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateProviderDto {
     pub name: Option<String>,
     pub contact_info: Option<String>,
@@ -78,7 +78,7 @@ pub struct UpdateProviderDto {
 
 // ─── Workers ────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Worker {
     pub id: Uuid,
     pub name: String,
@@ -92,14 +92,14 @@ pub struct Worker {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateWorkerDto {
     pub name: String,
     pub phone: Option<String>,
     pub address: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateWorkerDto {
     pub name: Option<String>,
     pub phone: Option<String>,
@@ -109,7 +109,7 @@ pub struct UpdateWorkerDto {
 
 // ─── Routes ─────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Route {
     pub id: Uuid,
     pub name: String,
@@ -118,17 +118,18 @@ pub struct Route {
     pub usage_count: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateRouteDto {
     pub name: String,
 }
 
 // ─── Freezers ───────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Freezer {
     pub id: Uuid,
     pub number: i32,
+    #[schema(value_type = Object)]
     pub max_capacity: serde_json::Value,
     pub is_on: bool,
     pub last_toggle: Option<DateTime<Utc>>,
@@ -136,14 +137,16 @@ pub struct Freezer {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateFreezerDto {
     pub number: i32,
+    #[schema(value_type = Option<Object>)]
     pub max_capacity: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateFreezerDto {
+    #[schema(value_type = Option<Object>)]
     pub max_capacity: Option<serde_json::Value>,
     pub is_on: Option<bool>,
 }

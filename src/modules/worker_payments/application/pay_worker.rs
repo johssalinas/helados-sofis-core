@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use crate::shared::errors::AppError;
 use crate::modules::worker_payments::domain::entities::WorkerPayment;
 use crate::modules::worker_payments::domain::repositories::WorkerPaymentRepository;
+use crate::shared::errors::AppError;
+use uuid::Uuid;
 
 pub async fn list_by_worker(
     repo: &dyn WorkerPaymentRepository,
@@ -26,7 +26,9 @@ pub async fn create_payment(
 ) -> Result<WorkerPayment, AppError> {
     // Verificar que no exista pago para este viaje
     if repo.find_by_trip(trip_id).await?.is_some() {
-        return Err(AppError::Conflict("Ya existe un pago para este viaje".into()));
+        return Err(AppError::Conflict(
+            "Ya existe un pago para este viaje".into(),
+        ));
     }
     repo.create_payment(trip_id, created_by).await
 }

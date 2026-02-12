@@ -5,13 +5,27 @@ use axum::{
 };
 use serde::Deserialize;
 use std::sync::Arc;
+use utoipa::OpenApi;
 use uuid::Uuid;
 
-use crate::shared::auth::{AppState, AuthUser, Role};
-use crate::shared::errors::AppError;
 use crate::modules::freezer_transfers::application::manage_transfers;
 use crate::modules::freezer_transfers::domain::entities::*;
 use crate::modules::freezer_transfers::domain::repositories::FreezerTransferRepository;
+use crate::shared::auth::{AppState, AuthUser, Role};
+use crate::shared::errors::AppError;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(list_transfers, get_transfer, list_by_freezer, create_transfer),
+    components(schemas(
+        crate::modules::freezer_transfers::domain::entities::FreezerTransfer,
+        crate::modules::freezer_transfers::domain::entities::FreezerTransferItem,
+        crate::modules::freezer_transfers::domain::entities::CreateTransferDto,
+        crate::modules::freezer_transfers::domain::entities::TransferItemDto,
+        crate::modules::freezer_transfers::domain::entities::TransferWithItems,
+    ))
+)]
+pub struct TransfersApiDoc;
 
 #[derive(Clone)]
 pub struct TransfersState {
@@ -20,10 +34,12 @@ pub struct TransfersState {
 }
 
 impl axum::extract::FromRef<TransfersState> for AppState {
-    fn from_ref(s: &TransfersState) -> AppState { s.app.clone() }
+    fn from_ref(s: &TransfersState) -> AppState {
+        s.app.clone()
+    }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct LimitQuery {
     pub limit: Option<i64>,
 }
@@ -37,6 +53,12 @@ pub fn router(app: AppState, repo: Arc<dyn FreezerTransferRepository>) -> Router
         .with_state(state)
 }
 
+#[utoipa::path(
+    get, path = "/", tag = "Transferencias entre Congeladores",
+    params(LimitQuery),
+    responses((status = 200, description = "Lista de transferencias", body = Vec<FreezerTransfer>)),
+    security(("bearer_auth" = []))
+)]
 async fn list_transfers(
     State(state): State<TransfersState>,
     auth: AuthUser,
@@ -48,6 +70,15 @@ async fn list_transfers(
     Ok(Json(transfers))
 }
 
+#[utoipa::path(
+    get, path = "/{id}", tag = "Transferencias entre Congeladores",
+    params(("id" = Uuid, Path, description = "ID de la transferencia")),
+    responses(
+        (status = 200, description = "Transferencia con items", body = TransferWithItems),
+        (status = 404, description = "No encontrada")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn get_transfer(
     State(state): State<TransfersState>,
     auth: AuthUser,
@@ -58,17 +89,28 @@ async fn get_transfer(
     Ok(Json(transfer))
 }
 
+#[utoipa::path(
+    get, path = "/freezer/{freezer_id}", tag = "Transferencias entre Congeladores",
+    params(("freezer_id" = Uuid, Path, description = "ID del congelador")),
+    responses((status = 200, description = "Transferencias del congelador", body = Vec<FreezerTransfer>)),
+    security(("bearer_auth" = []))
+)]
 async fn list_by_freezer(
     State(state): State<TransfersState>,
     auth: AuthUser,
     Path(freezer_id): Path<Uuid>,
 ) -> Result<Json<Vec<FreezerTransfer>>, AppError> {
     auth.require_role(Role::Admin)?;
-    let transfers =
-        manage_transfers::list_by_freezer(state.repo.as_ref(), freezer_id).await?;
+    let transfers = manage_transfers::list_by_freezer(state.repo.as_ref(), freezer_id).await?;
     Ok(Json(transfers))
 }
 
+#[utoipa::path(
+    post, path = "/", tag = "Transferencias entre Congeladores",
+    request_body = CreateTransferDto,
+    responses((status = 200, description = "Transferencia creada", body = FreezerTransfer)),
+    security(("bearer_auth" = []))
+)]
 async fn create_transfer(
     State(state): State<TransfersState>,
     auth: AuthUser,

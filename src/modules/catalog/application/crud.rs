@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::catalog::domain::entities::*;
 use crate::modules::catalog::domain::repositories::*;
+use crate::shared::errors::AppError;
 
 // ─── Products ───────────────────────────────────────────
 
@@ -31,9 +31,10 @@ pub async fn update_product(
     dto: UpdateProductDto,
     modified_by: Uuid,
 ) -> Result<Product, AppError> {
-    let _ = repo.find_by_id(id).await?.ok_or_else(|| {
-        AppError::NotFound(format!("Producto {id} no encontrado"))
-    })?;
+    let _ = repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Producto {id} no encontrado")))?;
     repo.update(id, &dto, modified_by).await
 }
 
@@ -63,9 +64,10 @@ pub async fn update_flavor(
     id: Uuid,
     dto: UpdateFlavorDto,
 ) -> Result<Flavor, AppError> {
-    let _ = repo.find_by_id(id).await?.ok_or_else(|| {
-        AppError::NotFound(format!("Sabor {id} no encontrado"))
-    })?;
+    let _ = repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Sabor {id} no encontrado")))?;
     repo.update(id, &dto).await
 }
 
@@ -88,9 +90,10 @@ pub async fn update_provider(
     id: Uuid,
     dto: UpdateProviderDto,
 ) -> Result<Provider, AppError> {
-    let _ = repo.find_by_id(id).await?.ok_or_else(|| {
-        AppError::NotFound(format!("Proveedor {id} no encontrado"))
-    })?;
+    let _ = repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Proveedor {id} no encontrado")))?;
     repo.update(id, &dto).await
 }
 
@@ -119,9 +122,10 @@ pub async fn update_worker(
     id: Uuid,
     dto: UpdateWorkerDto,
 ) -> Result<Worker, AppError> {
-    let _ = repo.find_by_id(id).await?.ok_or_else(|| {
-        AppError::NotFound(format!("Trabajador {id} no encontrado"))
-    })?;
+    let _ = repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Trabajador {id} no encontrado")))?;
     repo.update(id, &dto).await
 }
 
@@ -164,15 +168,20 @@ pub async fn update_freezer(
     id: Uuid,
     dto: UpdateFreezerDto,
 ) -> Result<Freezer, AppError> {
-    let _ = repo.find_by_id(id).await?.ok_or_else(|| {
-        AppError::NotFound(format!("Congelador {id} no encontrado"))
-    })?;
+    let _ = repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Congelador {id} no encontrado")))?;
     repo.update(id, &dto).await
 }
 
-pub async fn toggle_freezer(repo: &Arc<dyn FreezerRepository>, id: Uuid) -> Result<Freezer, AppError> {
-    let _ = repo.find_by_id(id).await?.ok_or_else(|| {
-        AppError::NotFound(format!("Congelador {id} no encontrado"))
-    })?;
+pub async fn toggle_freezer(
+    repo: &Arc<dyn FreezerRepository>,
+    id: Uuid,
+) -> Result<Freezer, AppError> {
+    let _ = repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Congelador {id} no encontrado")))?;
     repo.toggle_power(id).await
 }

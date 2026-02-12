@@ -4,9 +4,9 @@ use sqlx::PgPool;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::worker_trips::domain::entities::*;
 use crate::modules::worker_trips::domain::repositories::WorkerTripRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgWorkerTripRepository {
     pool: PgPool,
@@ -28,7 +28,11 @@ impl WorkerTripRepository for PgWorkerTripRepository {
         .await?)
     }
 
-    async fn find_by_worker(&self, worker_id: Uuid, limit: i64) -> Result<Vec<WorkerTrip>, AppError> {
+    async fn find_by_worker(
+        &self,
+        worker_id: Uuid,
+        limit: i64,
+    ) -> Result<Vec<WorkerTrip>, AppError> {
         Ok(sqlx::query_as::<_, WorkerTrip>(
             "SELECT * FROM worker_trips WHERE worker_id = $1 ORDER BY departure_time DESC LIMIT $2",
         )
@@ -180,9 +184,7 @@ impl WorkerTripRepository for PgWorkerTripRepository {
         .bind(trip_id)
         .fetch_optional(&mut *tx)
         .await?
-        .ok_or_else(|| {
-            AppError::NotFound("Viaje no encontrado o ya fue completado".into())
-        })?;
+        .ok_or_else(|| AppError::NotFound("Viaje no encontrado o ya fue completado".into()))?;
 
         // 2. Obtener loaded_items para calcular ventas
         let loaded_items = sqlx::query_as::<_, LoadedItem>(
@@ -289,8 +291,7 @@ impl WorkerTripRepository for PgWorkerTripRepository {
         }
 
         // 4. Calcular sold_quantity y amount_due
-        let (sold_quantity, amount_due) =
-            calculate_sales(&loaded_items, &dto.returned_items);
+        let (sold_quantity, amount_due) = calculate_sales(&loaded_items, &dto.returned_items);
 
         // 5. Actualizar el viaje
         let trip = sqlx::query_as::<_, WorkerTrip>(
@@ -362,9 +363,7 @@ fn calculate_sales(loaded: &[LoadedItem], returned: &[ReturnedItemDto]) -> (i32,
     // Agrupar devoluciones por (product_id, flavor_id)
     let mut returned_map: HashMap<(Uuid, Uuid), i32> = HashMap::new();
     for r in returned {
-        *returned_map
-            .entry((r.product_id, r.flavor_id))
-            .or_insert(0) += r.quantity;
+        *returned_map.entry((r.product_id, r.flavor_id)).or_insert(0) += r.quantity;
     }
 
     let mut total_sold = 0i32;

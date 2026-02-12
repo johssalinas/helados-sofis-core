@@ -5,13 +5,37 @@ use axum::{
 };
 use serde::Deserialize;
 use std::sync::Arc;
+use utoipa::OpenApi;
 use uuid::Uuid;
 
-use crate::shared::auth::{AppState, AuthUser};
-use crate::shared::errors::AppError;
 use crate::modules::worker_trips::application::manage_trips;
 use crate::modules::worker_trips::domain::entities::*;
 use crate::modules::worker_trips::domain::repositories::WorkerTripRepository;
+use crate::shared::auth::{AppState, AuthUser};
+use crate::shared::errors::AppError;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        list_active,
+        list_by_worker,
+        todays_returned,
+        create_trip,
+        get_trip,
+        complete_trip
+    ),
+    components(schemas(
+        crate::modules::worker_trips::domain::entities::WorkerTrip,
+        crate::modules::worker_trips::domain::entities::LoadedItem,
+        crate::modules::worker_trips::domain::entities::ReturnedItem,
+        crate::modules::worker_trips::domain::entities::CreateTripDto,
+        crate::modules::worker_trips::domain::entities::LoadedItemDto,
+        crate::modules::worker_trips::domain::entities::CompleteTripDto,
+        crate::modules::worker_trips::domain::entities::ReturnedItemDto,
+        crate::modules::worker_trips::domain::entities::TripWithItems,
+    ))
+)]
+pub struct TripsApiDoc;
 
 #[derive(Clone)]
 pub struct TripsState {
@@ -20,10 +44,12 @@ pub struct TripsState {
 }
 
 impl axum::extract::FromRef<TripsState> for AppState {
-    fn from_ref(s: &TripsState) -> AppState { s.app.clone() }
+    fn from_ref(s: &TripsState) -> AppState {
+        s.app.clone()
+    }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct WorkerQuery {
     pub limit: Option<i64>,
 }
@@ -40,6 +66,11 @@ pub fn router(app: AppState, repo: Arc<dyn WorkerTripRepository>) -> Router {
         .with_state(state)
 }
 
+#[utoipa::path(
+    get, path = "/active", tag = "Viajes de Trabajadores",
+    responses((status = 200, description = "Viajes activos", body = Vec<WorkerTrip>)),
+    security(("bearer_auth" = []))
+)]
 async fn list_active(
     State(state): State<TripsState>,
     auth: AuthUser,
@@ -49,6 +80,15 @@ async fn list_active(
     Ok(Json(trips))
 }
 
+#[utoipa::path(
+    get, path = "/worker/{worker_id}", tag = "Viajes de Trabajadores",
+    params(
+        ("worker_id" = Uuid, Path, description = "ID del trabajador"),
+        WorkerQuery,
+    ),
+    responses((status = 200, description = "Viajes del trabajador", body = Vec<WorkerTrip>)),
+    security(("bearer_auth" = []))
+)]
 async fn list_by_worker(
     State(state): State<TripsState>,
     auth: AuthUser,
@@ -61,6 +101,15 @@ async fn list_by_worker(
     Ok(Json(trips))
 }
 
+#[utoipa::path(
+    get, path = "/{id}", tag = "Viajes de Trabajadores",
+    params(("id" = Uuid, Path, description = "ID del viaje")),
+    responses(
+        (status = 200, description = "Viaje con items", body = TripWithItems),
+        (status = 404, description = "No encontrado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn get_trip(
     State(state): State<TripsState>,
     auth: AuthUser,
@@ -71,6 +120,12 @@ async fn get_trip(
     Ok(Json(trip))
 }
 
+#[utoipa::path(
+    post, path = "/", tag = "Viajes de Trabajadores",
+    request_body = CreateTripDto,
+    responses((status = 200, description = "Viaje creado", body = WorkerTrip)),
+    security(("bearer_auth" = []))
+)]
 async fn create_trip(
     State(state): State<TripsState>,
     auth: AuthUser,
@@ -81,6 +136,13 @@ async fn create_trip(
     Ok(Json(trip))
 }
 
+#[utoipa::path(
+    post, path = "/{id}/complete", tag = "Viajes de Trabajadores",
+    params(("id" = Uuid, Path, description = "ID del viaje")),
+    request_body = CompleteTripDto,
+    responses((status = 200, description = "Viaje completado", body = WorkerTrip)),
+    security(("bearer_auth" = []))
+)]
 async fn complete_trip(
     State(state): State<TripsState>,
     auth: AuthUser,
@@ -88,11 +150,15 @@ async fn complete_trip(
     Json(dto): Json<CompleteTripDto>,
 ) -> Result<Json<WorkerTrip>, AppError> {
     auth.require_role(crate::shared::auth::Role::Admin)?;
-    let trip =
-        manage_trips::complete_trip(state.repo.as_ref(), id, &dto, auth.user_id()).await?;
+    let trip = manage_trips::complete_trip(state.repo.as_ref(), id, &dto, auth.user_id()).await?;
     Ok(Json(trip))
 }
 
+#[utoipa::path(
+    get, path = "/today", tag = "Viajes de Trabajadores",
+    responses((status = 200, description = "Viajes retornados hoy", body = Vec<WorkerTrip>)),
+    security(("bearer_auth" = []))
+)]
 async fn todays_returned(
     State(state): State<TripsState>,
     auth: AuthUser,

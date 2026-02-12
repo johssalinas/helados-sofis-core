@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Registro de historial de precios (Temporal Data Pattern).
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct PriceHistory {
     pub id: Uuid,
     pub product_id: Uuid,
@@ -21,7 +21,7 @@ pub struct PriceHistory {
 }
 
 /// DTO para crear un nuevo precio (NO actualizar — Temporal Data).
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreatePriceDto {
     pub product_id: Uuid,
     pub flavor_id: Uuid,

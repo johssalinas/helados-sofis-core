@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::auth::Role;
-use crate::shared::errors::AppError;
 use crate::modules::users::domain::entities::{CreateUserDto, UpdateUserDto, User};
 use crate::modules::users::domain::repositories::UserRepository;
+use crate::shared::auth::Role;
+use crate::shared::errors::AppError;
 
 /// Implementación PostgreSQL del repositorio de usuarios.
 pub struct PgUserRepository {
@@ -37,11 +37,9 @@ impl UserRepository for PgUserRepository {
     }
 
     async fn find_all(&self) -> Result<Vec<User>, AppError> {
-        let users = sqlx::query_as::<_, User>(
-            "SELECT * FROM users ORDER BY created_at DESC",
-        )
-        .fetch_all(&self.pool)
-        .await?;
+        let users = sqlx::query_as::<_, User>("SELECT * FROM users ORDER BY created_at DESC")
+            .fetch_all(&self.pool)
+            .await?;
         Ok(users)
     }
 
@@ -54,7 +52,11 @@ impl UserRepository for PgUserRepository {
         Ok(users)
     }
 
-    async fn create(&self, dto: &CreateUserDto, created_by: Option<Uuid>) -> Result<User, AppError> {
+    async fn create(
+        &self,
+        dto: &CreateUserDto,
+        created_by: Option<Uuid>,
+    ) -> Result<User, AppError> {
         let user = sqlx::query_as::<_, User>(
             r#"
             INSERT INTO users (email, display_name, photo_url, role, notes, created_by)

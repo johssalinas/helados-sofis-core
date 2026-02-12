@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::users::domain::entities::{CreateUserDto, User};
 use crate::modules::users::domain::repositories::UserRepository;
+use crate::shared::errors::AppError;
 
 /// Caso de uso: Crear un nuevo usuario.
 /// Solo el Owner puede crear usuarios.

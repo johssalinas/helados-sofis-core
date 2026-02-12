@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::audit_log::domain::entities::{AuditLogEntry, CreateAuditLogDto};
 use crate::modules::audit_log::domain::repositories::AuditLogRepository;
+use crate::shared::errors::AppError;
 
 /// Implementación PostgreSQL del repositorio de auditoría.
 pub struct PgAuditLogRepository {

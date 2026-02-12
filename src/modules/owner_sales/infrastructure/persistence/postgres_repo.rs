@@ -4,9 +4,9 @@ use sqlx::PgPool;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::owner_sales::domain::entities::*;
 use crate::modules::owner_sales::domain::repositories::OwnerSaleRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgOwnerSaleRepository {
     pool: PgPool,
@@ -33,11 +33,10 @@ impl OwnerSaleRepository for PgOwnerSaleRepository {
         &self,
         id: Uuid,
     ) -> Result<Option<OwnerSaleWithItems>, AppError> {
-        let sale =
-            sqlx::query_as::<_, OwnerSale>("SELECT * FROM owner_sales WHERE id = $1")
-                .bind(id)
-                .fetch_optional(&self.pool)
-                .await?;
+        let sale = sqlx::query_as::<_, OwnerSale>("SELECT * FROM owner_sales WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&self.pool)
+            .await?;
 
         match sale {
             Some(s) => {
@@ -148,9 +147,7 @@ impl OwnerSaleRepository for PgOwnerSaleRepository {
         .bind(sale_id)
         .fetch_optional(&mut *tx)
         .await?
-        .ok_or_else(|| {
-            AppError::NotFound("Venta no encontrada o ya completada".into())
-        })?;
+        .ok_or_else(|| AppError::NotFound("Venta no encontrada o ya completada".into()))?;
 
         // 2. Obtener loaded_items
         let loaded_items = sqlx::query_as::<_, OwnerSaleLoadedItem>(
@@ -320,9 +317,7 @@ fn calculate_owner_sales(
 ) -> (i32, Decimal) {
     let mut returned_map: HashMap<(Uuid, Uuid), i32> = HashMap::new();
     for r in returned {
-        *returned_map
-            .entry((r.product_id, r.flavor_id))
-            .or_insert(0) += r.quantity;
+        *returned_map.entry((r.product_id, r.flavor_id)).or_insert(0) += r.quantity;
     }
 
     let mut total_sold = 0i32;

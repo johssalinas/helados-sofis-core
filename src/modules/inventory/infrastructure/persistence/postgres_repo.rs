@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::inventory::domain::entities::InventoryItem;
 use crate::modules::inventory::domain::repositories::InventoryRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgInventoryRepository {
     pool: PgPool,
@@ -19,9 +19,11 @@ impl PgInventoryRepository {
 #[async_trait]
 impl InventoryRepository for PgInventoryRepository {
     async fn find_all(&self) -> Result<Vec<InventoryItem>, AppError> {
-        Ok(sqlx::query_as::<_, InventoryItem>("SELECT * FROM inventory ORDER BY freezer_id, product_id")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(sqlx::query_as::<_, InventoryItem>(
+            "SELECT * FROM inventory ORDER BY freezer_id, product_id",
+        )
+        .fetch_all(&self.pool)
+        .await?)
     }
 
     async fn find_by_freezer(&self, freezer_id: Uuid) -> Result<Vec<InventoryItem>, AppError> {
@@ -34,10 +36,12 @@ impl InventoryRepository for PgInventoryRepository {
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<InventoryItem>, AppError> {
-        Ok(sqlx::query_as::<_, InventoryItem>("SELECT * FROM inventory WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, InventoryItem>("SELECT * FROM inventory WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_sellable(&self) -> Result<Vec<InventoryItem>, AppError> {

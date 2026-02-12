@@ -1,5 +1,5 @@
-mod shared;
 mod modules;
+mod shared;
 
 use std::sync::Arc;
 
@@ -7,39 +7,41 @@ use axum::Router;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use shared::auth::AppState;
 use shared::config::AppConfig;
 use shared::db::create_pool;
 
 // ─── Repositorios (adaptadores) ─────────────────────────
-use modules::users::infrastructure::persistence::postgres_repo::PgUserRepository;
 use modules::audit_log::infrastructure::persistence::postgres_repo::PgAuditLogRepository;
-use modules::catalog::infrastructure::persistence::postgres_repo::*;
-use modules::pricing::infrastructure::persistence::postgres_repo::PgPriceRepository;
-use modules::inventory::infrastructure::persistence::postgres_repo::PgInventoryRepository;
-use modules::purchases::infrastructure::persistence::postgres_repo::PgPurchaseRepository;
-use modules::worker_trips::infrastructure::persistence::postgres_repo::PgWorkerTripRepository;
-use modules::worker_payments::infrastructure::persistence::postgres_repo::PgWorkerPaymentRepository;
 use modules::cash_register::infrastructure::persistence::postgres_repo::PgCashRegisterRepository;
+use modules::catalog::infrastructure::persistence::postgres_repo::*;
+use modules::freezer_transfers::infrastructure::persistence::postgres_repo::PgFreezerTransferRepository;
+use modules::inventory::infrastructure::persistence::postgres_repo::PgInventoryRepository;
 use modules::local_sales::infrastructure::persistence::postgres_repo::PgLocalSaleRepository;
 use modules::owner_sales::infrastructure::persistence::postgres_repo::PgOwnerSaleRepository;
-use modules::freezer_transfers::infrastructure::persistence::postgres_repo::PgFreezerTransferRepository;
+use modules::pricing::infrastructure::persistence::postgres_repo::PgPriceRepository;
+use modules::purchases::infrastructure::persistence::postgres_repo::PgPurchaseRepository;
+use modules::users::infrastructure::persistence::postgres_repo::PgUserRepository;
+use modules::worker_payments::infrastructure::persistence::postgres_repo::PgWorkerPaymentRepository;
+use modules::worker_trips::infrastructure::persistence::postgres_repo::PgWorkerTripRepository;
 
 // ─── Routers (controladores) ────────────────────────────
-use modules::users::infrastructure::controllers::http_router as users_router;
-use modules::auth::infrastructure::controllers::http_router as auth_router;
 use modules::audit_log::infrastructure::controllers::http_router as audit_router;
-use modules::catalog::infrastructure::controllers::http_router as catalog_router;
-use modules::pricing::infrastructure::controllers::http_router as pricing_router;
-use modules::inventory::infrastructure::controllers::http_router as inventory_router;
-use modules::purchases::infrastructure::controllers::http_router as purchases_router;
-use modules::worker_trips::infrastructure::controllers::http_router as trips_router;
-use modules::worker_payments::infrastructure::controllers::http_router as payments_router;
+use modules::auth::infrastructure::controllers::http_router as auth_router;
 use modules::cash_register::infrastructure::controllers::http_router as cash_router;
+use modules::catalog::infrastructure::controllers::http_router as catalog_router;
+use modules::freezer_transfers::infrastructure::controllers::http_router as transfers_router;
+use modules::inventory::infrastructure::controllers::http_router as inventory_router;
 use modules::local_sales::infrastructure::controllers::http_router as local_sales_router;
 use modules::owner_sales::infrastructure::controllers::http_router as owner_sales_router;
-use modules::freezer_transfers::infrastructure::controllers::http_router as transfers_router;
+use modules::pricing::infrastructure::controllers::http_router as pricing_router;
+use modules::purchases::infrastructure::controllers::http_router as purchases_router;
+use modules::users::infrastructure::controllers::http_router as users_router;
+use modules::worker_payments::infrastructure::controllers::http_router as payments_router;
+use modules::worker_trips::infrastructure::controllers::http_router as trips_router;
 
 #[tokio::main]
 async fn main() {
@@ -47,8 +49,10 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "helados_sofis_core=debug,tower_http=debug".into()))
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "helados_sofis_core=debug,tower_http=debug".into()),
+        )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
@@ -128,6 +132,63 @@ async fn main() {
         freezers: freezer_repo,
     };
 
+    // ─── OpenAPI / Swagger ───────────────────────────────
+    #[derive(OpenApi)]
+    #[openapi(
+        info(
+            title = "Helados Sofis API",
+            version = "1.0.0",
+            description = "API backend para la gestión de Helados Sofis: catálogo, inventario, ventas, caja y más."
+        ),
+        modifiers(&SecurityAddon),
+    )]
+    struct ApiDoc;
+
+    struct SecurityAddon;
+    impl utoipa::Modify for SecurityAddon {
+        fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+            let components = openapi.components.get_or_insert_with(Default::default);
+            components.add_security_scheme(
+                "bearer_auth",
+                utoipa::openapi::security::SecurityScheme::Http(
+                    utoipa::openapi::security::Http::new(
+                        utoipa::openapi::security::HttpAuthScheme::Bearer,
+                    ),
+                ),
+            );
+        }
+    }
+
+    let mut doc = ApiDoc::openapi();
+    doc = doc.nest("/api/auth", auth_router::AuthApiDoc::openapi());
+    doc = doc.nest("/api/users", users_router::UsersApiDoc::openapi());
+    doc = doc.nest("/api/audit", audit_router::AuditApiDoc::openapi());
+    doc = doc.nest("/api/catalog", catalog_router::CatalogApiDoc::openapi());
+    doc = doc.nest("/api/prices", pricing_router::PricingApiDoc::openapi());
+    doc = doc.nest(
+        "/api/inventory",
+        inventory_router::InventoryApiDoc::openapi(),
+    );
+    doc = doc.nest(
+        "/api/purchases",
+        purchases_router::PurchasesApiDoc::openapi(),
+    );
+    doc = doc.nest("/api/trips", trips_router::TripsApiDoc::openapi());
+    doc = doc.nest("/api/payments", payments_router::PaymentsApiDoc::openapi());
+    doc = doc.nest("/api/cash", cash_router::CashApiDoc::openapi());
+    doc = doc.nest(
+        "/api/local-sales",
+        local_sales_router::LocalSalesApiDoc::openapi(),
+    );
+    doc = doc.nest(
+        "/api/owner-sales",
+        owner_sales_router::OwnerSalesApiDoc::openapi(),
+    );
+    doc = doc.nest(
+        "/api/transfers",
+        transfers_router::TransfersApiDoc::openapi(),
+    );
+
     // ─── CORS ───────────────────────────────────────────
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -136,19 +197,56 @@ async fn main() {
 
     // ─── Router principal ───────────────────────────────
     let app = Router::new()
-        .nest("/api/users", users_router::router(app_state.clone(), user_repo.clone()))
-        .nest("/api/auth", auth_router::router(app_state.clone(), user_repo.clone()))
-        .nest("/api/audit", audit_router::router(app_state.clone(), audit_repo))
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", doc))
+        .nest(
+            "/api/users",
+            users_router::router(app_state.clone(), user_repo.clone()),
+        )
+        .nest(
+            "/api/auth",
+            auth_router::router(app_state.clone(), user_repo.clone()),
+        )
+        .nest(
+            "/api/audit",
+            audit_router::router(app_state.clone(), audit_repo),
+        )
         .nest("/api/catalog", catalog_router::router(catalog_state))
-        .nest("/api/prices", pricing_router::router(app_state.clone(), price_repo))
-        .nest("/api/inventory", inventory_router::router(app_state.clone(), inventory_repo))
-        .nest("/api/purchases", purchases_router::router(app_state.clone(), purchase_repo))
-        .nest("/api/trips", trips_router::router(app_state.clone(), trip_repo))
-        .nest("/api/payments", payments_router::router(app_state.clone(), payment_repo))
-        .nest("/api/cash", cash_router::router(app_state.clone(), cash_repo))
-        .nest("/api/local-sales", local_sales_router::router(app_state.clone(), local_sale_repo))
-        .nest("/api/owner-sales", owner_sales_router::router(app_state.clone(), owner_sale_repo))
-        .nest("/api/transfers", transfers_router::router(app_state.clone(), transfer_repo))
+        .nest(
+            "/api/prices",
+            pricing_router::router(app_state.clone(), price_repo),
+        )
+        .nest(
+            "/api/inventory",
+            inventory_router::router(app_state.clone(), inventory_repo),
+        )
+        .nest(
+            "/api/purchases",
+            purchases_router::router(app_state.clone(), purchase_repo),
+        )
+        .nest(
+            "/api/trips",
+            trips_router::router(app_state.clone(), trip_repo),
+        )
+        .nest(
+            "/api/payments",
+            payments_router::router(app_state.clone(), payment_repo),
+        )
+        .nest(
+            "/api/cash",
+            cash_router::router(app_state.clone(), cash_repo),
+        )
+        .nest(
+            "/api/local-sales",
+            local_sales_router::router(app_state.clone(), local_sale_repo),
+        )
+        .nest(
+            "/api/owner-sales",
+            owner_sales_router::router(app_state.clone(), owner_sale_repo),
+        )
+        .nest(
+            "/api/transfers",
+            transfers_router::router(app_state.clone(), transfer_repo),
+        )
         .layer(cors)
         .layer(TraceLayer::new_for_http());
 

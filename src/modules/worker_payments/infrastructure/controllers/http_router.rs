@@ -4,13 +4,24 @@ use axum::{
     Json, Router,
 };
 use std::sync::Arc;
+use utoipa::OpenApi;
 use uuid::Uuid;
 
-use crate::shared::auth::{AppState, AuthUser};
-use crate::shared::errors::AppError;
 use crate::modules::worker_payments::application::pay_worker;
 use crate::modules::worker_payments::domain::entities::*;
 use crate::modules::worker_payments::domain::repositories::WorkerPaymentRepository;
+use crate::shared::auth::{AppState, AuthUser};
+use crate::shared::errors::AppError;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(list_by_worker, get_by_trip, create_payment),
+    components(schemas(
+        crate::modules::worker_payments::domain::entities::WorkerPayment,
+        crate::modules::worker_payments::domain::entities::CreatePaymentDto,
+    ))
+)]
+pub struct PaymentsApiDoc;
 
 #[derive(Clone)]
 pub struct PaymentsState {
@@ -19,7 +30,9 @@ pub struct PaymentsState {
 }
 
 impl axum::extract::FromRef<PaymentsState> for AppState {
-    fn from_ref(s: &PaymentsState) -> AppState { s.app.clone() }
+    fn from_ref(s: &PaymentsState) -> AppState {
+        s.app.clone()
+    }
 }
 
 pub fn router(app: AppState, repo: Arc<dyn WorkerPaymentRepository>) -> Router {
@@ -31,6 +44,12 @@ pub fn router(app: AppState, repo: Arc<dyn WorkerPaymentRepository>) -> Router {
         .with_state(state)
 }
 
+#[utoipa::path(
+    get, path = "/worker/{worker_id}", tag = "Pagos a Trabajadores",
+    params(("worker_id" = Uuid, Path, description = "ID del trabajador")),
+    responses((status = 200, description = "Pagos del trabajador", body = Vec<WorkerPayment>)),
+    security(("bearer_auth" = []))
+)]
 async fn list_by_worker(
     State(state): State<PaymentsState>,
     auth: AuthUser,
@@ -41,6 +60,15 @@ async fn list_by_worker(
     Ok(Json(payments))
 }
 
+#[utoipa::path(
+    get, path = "/trip/{trip_id}", tag = "Pagos a Trabajadores",
+    params(("trip_id" = Uuid, Path, description = "ID del viaje")),
+    responses(
+        (status = 200, description = "Pago del viaje", body = WorkerPayment),
+        (status = 404, description = "No encontrado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn get_by_trip(
     State(state): State<PaymentsState>,
     auth: AuthUser,
@@ -51,6 +79,12 @@ async fn get_by_trip(
     Ok(Json(payment))
 }
 
+#[utoipa::path(
+    post, path = "/", tag = "Pagos a Trabajadores",
+    request_body = CreatePaymentDto,
+    responses((status = 200, description = "Pago creado", body = WorkerPayment)),
+    security(("bearer_auth" = []))
+)]
 async fn create_payment(
     State(state): State<PaymentsState>,
     auth: AuthUser,

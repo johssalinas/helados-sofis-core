@@ -4,9 +4,9 @@ use rust_decimal::Decimal;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::cash_register::domain::entities::{CashTransaction, CashTransactionType};
 use crate::modules::cash_register::domain::repositories::CashRegisterRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgCashRegisterRepository {
     pool: PgPool,

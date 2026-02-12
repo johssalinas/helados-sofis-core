@@ -1,12 +1,24 @@
 use std::sync::Arc;
 
 use axum::{extract::State, routing::post, Json, Router};
+use utoipa::OpenApi;
 
-use crate::shared::auth::AppState;
-use crate::shared::errors::AppError;
 use crate::modules::auth::application::google_login;
 use crate::modules::auth::domain::entities::{GoogleLoginRequest, GoogleTokenInfo, LoginResponse};
 use crate::modules::users::domain::repositories::UserRepository;
+use crate::shared::auth::AppState;
+use crate::shared::errors::AppError;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(google_login_handler),
+    components(schemas(
+        crate::modules::auth::domain::entities::GoogleLoginRequest,
+        crate::modules::auth::domain::entities::LoginResponse,
+        crate::modules::auth::domain::entities::AuthUserInfo,
+    ))
+)]
+pub struct AuthApiDoc;
 
 /// Estado del módulo auth.
 #[derive(Clone)]
@@ -16,7 +28,9 @@ pub struct AuthState {
 }
 
 impl axum::extract::FromRef<AuthState> for AppState {
-    fn from_ref(s: &AuthState) -> AppState { s.app.clone() }
+    fn from_ref(s: &AuthState) -> AppState {
+        s.app.clone()
+    }
 }
 
 /// Crea el router del módulo auth.
@@ -38,6 +52,16 @@ pub fn router(app_state: AppState, user_repo: Arc<dyn UserRepository>) -> Router
 /// El backend valida el token con Google tokeninfo, verifica
 /// que el usuario exista (o lo crea si es el primero), y devuelve
 /// un JWT propio del sistema.
+#[utoipa::path(
+    post,
+    path = "/google",
+    tag = "Auth",
+    request_body = GoogleLoginRequest,
+    responses(
+        (status = 200, description = "Login exitoso", body = LoginResponse),
+        (status = 401, description = "Token de Google inválido")
+    )
+)]
 async fn google_login_handler(
     State(state): State<AuthState>,
     Json(req): Json<GoogleLoginRequest>,

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Item de inventario — una "pila" homogénea por congelador.
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct InventoryItem {
     pub id: Uuid,
     pub freezer_id: Uuid,
@@ -19,7 +19,7 @@ pub struct InventoryItem {
 }
 
 /// DTO para agregar stock (compra a proveedor).
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct AddStockDto {
     pub freezer_id: Uuid,
     pub product_id: Uuid,
@@ -29,7 +29,7 @@ pub struct AddStockDto {
 }
 
 /// DTO para actualizar alerta de stock mínimo.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateAlertDto {
     pub min_stock_alert: i32,
 }

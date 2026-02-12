@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::{CreatePurchaseDto, Purchase, PurchaseWithItems};
+use crate::shared::errors::AppError;
 
 #[async_trait]
 pub trait PurchaseRepository: Send + Sync {

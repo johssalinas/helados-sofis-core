@@ -2,13 +2,11 @@ use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::cash_register::domain::entities::*;
 use crate::modules::cash_register::domain::repositories::CashRegisterRepository;
+use crate::shared::errors::AppError;
 
-pub async fn get_balance(
-    repo: &dyn CashRegisterRepository,
-) -> Result<BalanceInfo, AppError> {
+pub async fn get_balance(repo: &dyn CashRegisterRepository) -> Result<BalanceInfo, AppError> {
     let current = repo.get_current_balance().await?;
     let calculated = repo.calculate_balance_from_scratch().await?;
     Ok(BalanceInfo {
@@ -24,7 +22,9 @@ pub async fn add_expense(
     created_by: Uuid,
 ) -> Result<CashTransaction, AppError> {
     if dto.amount <= Decimal::ZERO {
-        return Err(AppError::BadRequest("El monto del gasto debe ser positivo".into()));
+        return Err(AppError::BadRequest(
+            "El monto del gasto debe ser positivo".into(),
+        ));
     }
     // Gastos son negativos en la caja
     repo.add_transaction(
@@ -45,7 +45,9 @@ pub async fn add_withdrawal(
     created_by: Uuid,
 ) -> Result<CashTransaction, AppError> {
     if dto.amount <= Decimal::ZERO {
-        return Err(AppError::BadRequest("El monto del retiro debe ser positivo".into()));
+        return Err(AppError::BadRequest(
+            "El monto del retiro debe ser positivo".into(),
+        ));
     }
     repo.add_transaction(
         CashTransactionType::OwnerWithdrawal,

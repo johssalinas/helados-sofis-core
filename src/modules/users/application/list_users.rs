@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::shared::errors::AppError;
 use crate::modules::users::domain::entities::User;
 use crate::modules::users::domain::repositories::UserRepository;
+use crate::shared::errors::AppError;
 
 /// Caso de uso: Listar todos los usuarios.
 pub async fn all(repo: &Arc<dyn UserRepository>) -> Result<Vec<User>, AppError> {

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct LocalSale {
     pub id: Uuid,
     pub total: Decimal,
@@ -14,7 +14,7 @@ pub struct LocalSale {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct LocalSaleItem {
     pub id: Uuid,
     pub sale_id: Uuid,
@@ -26,14 +26,14 @@ pub struct LocalSaleItem {
     pub unit_price: Decimal,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateLocalSaleDto {
     pub sale_type: String,
     pub notes: Option<String>,
     pub items: Vec<LocalSaleItemDto>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct LocalSaleItemDto {
     pub inventory_id: Uuid,
     pub product_id: Uuid,
@@ -43,7 +43,7 @@ pub struct LocalSaleItemDto {
     pub unit_price: Decimal,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct LocalSaleWithItems {
     #[serde(flatten)]
     pub sale: LocalSale,

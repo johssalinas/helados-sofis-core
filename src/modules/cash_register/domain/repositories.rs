@@ -3,8 +3,8 @@ use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::{CashTransaction, CashTransactionType};
+use crate::shared::errors::AppError;
 
 #[async_trait]
 pub trait CashRegisterRepository: Send + Sync {

@@ -24,7 +24,7 @@ impl AuditAction {
 }
 
 /// Registro de auditoría.
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct AuditLogEntry {
     pub id: Uuid,
     pub action: String,

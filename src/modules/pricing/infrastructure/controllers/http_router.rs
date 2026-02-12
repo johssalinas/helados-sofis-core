@@ -6,13 +6,29 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
+use utoipa::OpenApi;
 use uuid::Uuid;
 
-use crate::shared::auth::{AppState, AuthUser, Role};
-use crate::shared::errors::AppError;
 use crate::modules::pricing::application::manage_prices;
 use crate::modules::pricing::domain::entities::{CreatePriceDto, PriceHistory};
 use crate::modules::pricing::domain::repositories::PriceRepository;
+use crate::shared::auth::{AppState, AuthUser, Role};
+use crate::shared::errors::AppError;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        list_current_handler,
+        create_handler,
+        current_price_handler,
+        history_handler
+    ),
+    components(schemas(
+        crate::modules::pricing::domain::entities::PriceHistory,
+        crate::modules::pricing::domain::entities::CreatePriceDto,
+    ))
+)]
+pub struct PricingApiDoc;
 
 #[derive(Clone)]
 pub struct PricingState {
@@ -21,10 +37,12 @@ pub struct PricingState {
 }
 
 impl axum::extract::FromRef<PricingState> for AppState {
-    fn from_ref(s: &PricingState) -> AppState { s.app.clone() }
+    fn from_ref(s: &PricingState) -> AppState {
+        s.app.clone()
+    }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct PriceLookupQuery {
     pub product_id: Uuid,
     pub flavor_id: Uuid,
@@ -45,6 +63,11 @@ pub fn router(app_state: AppState, repo: Arc<dyn PriceRepository>) -> Router {
 }
 
 /// GET /prices — Listar todos los precios actuales.
+#[utoipa::path(
+    get, path = "/", tag = "Precios",
+    responses((status = 200, description = "Precios actuales", body = Vec<PriceHistory>)),
+    security(("bearer_auth" = []))
+)]
 async fn list_current_handler(
     auth: AuthUser,
     State(state): State<PricingState>,
@@ -54,16 +77,33 @@ async fn list_current_handler(
 }
 
 /// POST /prices — Crear un nuevo precio (Temporal Data: nunca updatear).
+#[utoipa::path(
+    post, path = "/", tag = "Precios",
+    request_body = CreatePriceDto,
+    responses((status = 200, description = "Precio creado", body = PriceHistory)),
+    security(("bearer_auth" = []))
+)]
 async fn create_handler(
     auth: AuthUser,
     State(state): State<PricingState>,
     Json(dto): Json<CreatePriceDto>,
 ) -> Result<Json<PriceHistory>, AppError> {
     auth.require_owner()?;
-    Ok(Json(manage_prices::create_price(&state.repo, dto, auth.user_id()).await?))
+    Ok(Json(
+        manage_prices::create_price(&state.repo, dto, auth.user_id()).await?,
+    ))
 }
 
 /// GET /prices/current?product_id=...&flavor_id=...&provider_id=...
+#[utoipa::path(
+    get, path = "/current", tag = "Precios",
+    params(PriceLookupQuery),
+    responses(
+        (status = 200, description = "Precio actual", body = PriceHistory),
+        (status = 404, description = "No encontrado")
+    ),
+    security(("bearer_auth" = []))
+)]
 async fn current_price_handler(
     auth: AuthUser,
     State(state): State<PricingState>,
@@ -77,6 +117,12 @@ async fn current_price_handler(
 }
 
 /// GET /prices/history?product_id=...&flavor_id=...&provider_id=...
+#[utoipa::path(
+    get, path = "/history", tag = "Precios",
+    params(PriceLookupQuery),
+    responses((status = 200, description = "Historial de precios", body = Vec<PriceHistory>)),
+    security(("bearer_auth" = []))
+)]
 async fn history_handler(
     auth: AuthUser,
     State(state): State<PricingState>,

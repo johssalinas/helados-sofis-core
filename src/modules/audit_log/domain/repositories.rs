@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::{AuditLogEntry, CreateAuditLogDto};
+use crate::shared::errors::AppError;
 
 /// Puerto de salida: contrato de persistencia para audit_log.
 #[async_trait]
@@ -25,9 +25,6 @@ pub trait AuditLogRepository: Send + Sync {
     ) -> Result<Vec<AuditLogEntry>, AppError>;
 
     /// Obtener registros de un usuario específico.
-    async fn find_by_user(
-        &self,
-        user_id: Uuid,
-        limit: i64,
-    ) -> Result<Vec<AuditLogEntry>, AppError>;
+    async fn find_by_user(&self, user_id: Uuid, limit: i64)
+        -> Result<Vec<AuditLogEntry>, AppError>;
 }

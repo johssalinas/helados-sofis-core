@@ -3,9 +3,9 @@ use rust_decimal::Decimal;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::worker_payments::domain::entities::WorkerPayment;
 use crate::modules::worker_payments::domain::repositories::WorkerPaymentRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgWorkerPaymentRepository {
     pool: PgPool,
@@ -42,12 +42,12 @@ impl WorkerPaymentRepository for PgWorkerPaymentRepository {
     }
 
     async fn find_by_trip(&self, trip_id: Uuid) -> Result<Option<WorkerPayment>, AppError> {
-        Ok(sqlx::query_as::<_, WorkerPayment>(
-            "SELECT * FROM worker_payments WHERE trip_id = $1",
+        Ok(
+            sqlx::query_as::<_, WorkerPayment>("SELECT * FROM worker_payments WHERE trip_id = $1")
+                .bind(trip_id)
+                .fetch_optional(&self.pool)
+                .await?,
         )
-        .bind(trip_id)
-        .fetch_optional(&self.pool)
-        .await?)
     }
 
     async fn create_payment(

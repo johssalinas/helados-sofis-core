@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 // ─── Entidades ──────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct WorkerTrip {
     pub id: Uuid,
     pub worker_id: Uuid,
@@ -19,7 +19,7 @@ pub struct WorkerTrip {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct LoadedItem {
     pub id: Uuid,
     pub trip_id: Uuid,
@@ -32,7 +32,7 @@ pub struct LoadedItem {
     pub is_deformed: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct ReturnedItem {
     pub id: Uuid,
     pub trip_id: Uuid,
@@ -45,7 +45,7 @@ pub struct ReturnedItem {
 
 // ─── DTOs ───────────────────────────────────────────────
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateTripDto {
     pub worker_id: Uuid,
     pub departure_time: DateTime<Utc>,
@@ -53,7 +53,7 @@ pub struct CreateTripDto {
     pub loaded_items: Vec<LoadedItemDto>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct LoadedItemDto {
     pub inventory_id: Uuid,
     pub product_id: Uuid,
@@ -64,12 +64,12 @@ pub struct LoadedItemDto {
     pub is_deformed: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CompleteTripDto {
     pub returned_items: Vec<ReturnedItemDto>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, utoipa::ToSchema)]
 pub struct ReturnedItemDto {
     pub product_id: Uuid,
     pub flavor_id: Uuid,
@@ -80,7 +80,7 @@ pub struct ReturnedItemDto {
 
 // ─── Respuesta compuesta ────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct TripWithItems {
     #[serde(flatten)]
     pub trip: WorkerTrip,

@@ -1,2 +1,2 @@
-pub mod persistence;
 pub mod controllers;
+pub mod persistence;

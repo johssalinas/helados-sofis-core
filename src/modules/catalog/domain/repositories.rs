@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::*;
+use crate::shared::errors::AppError;
 
 // ─── ProductRepository ──────────────────────────────────
 
@@ -12,7 +12,12 @@ pub trait ProductRepository: Send + Sync {
     async fn find_active(&self) -> Result<Vec<Product>, AppError>;
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Product>, AppError>;
     async fn create(&self, dto: &CreateProductDto, created_by: Uuid) -> Result<Product, AppError>;
-    async fn update(&self, id: Uuid, dto: &UpdateProductDto, modified_by: Uuid) -> Result<Product, AppError>;
+    async fn update(
+        &self,
+        id: Uuid,
+        dto: &UpdateProductDto,
+        modified_by: Uuid,
+    ) -> Result<Product, AppError>;
 }
 
 // ─── FlavorRepository ───────────────────────────────────
@@ -33,7 +38,8 @@ pub trait ProviderRepository: Send + Sync {
     async fn find_all(&self) -> Result<Vec<Provider>, AppError>;
     async fn find_active(&self) -> Result<Vec<Provider>, AppError>;
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Provider>, AppError>;
-    async fn create(&self, dto: &CreateProviderDto, created_by: Uuid) -> Result<Provider, AppError>;
+    async fn create(&self, dto: &CreateProviderDto, created_by: Uuid)
+        -> Result<Provider, AppError>;
     async fn update(&self, id: Uuid, dto: &UpdateProviderDto) -> Result<Provider, AppError>;
 }
 

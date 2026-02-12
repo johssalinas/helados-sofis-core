@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use crate::shared::errors::AppError;
 use crate::modules::freezer_transfers::domain::entities::*;
 use crate::modules::freezer_transfers::domain::repositories::FreezerTransferRepository;
+use crate::shared::errors::AppError;
+use uuid::Uuid;
 
 pub async fn list_transfers(
     repo: &dyn FreezerTransferRepository,
@@ -32,10 +32,14 @@ pub async fn create_transfer(
     created_by: Uuid,
 ) -> Result<FreezerTransfer, AppError> {
     if dto.items.is_empty() {
-        return Err(AppError::BadRequest("Debe transferir al menos un item".into()));
+        return Err(AppError::BadRequest(
+            "Debe transferir al menos un item".into(),
+        ));
     }
     if dto.from_freezer_id == dto.to_freezer_id {
-        return Err(AppError::BadRequest("Origen y destino deben ser diferentes".into()));
+        return Err(AppError::BadRequest(
+            "Origen y destino deben ser diferentes".into(),
+        ));
     }
     repo.create_transfer(dto, created_by).await
 }

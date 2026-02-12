@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Solicitud de login con Google ID token.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct GoogleLoginRequest {
     pub id_token: String,
 }
@@ -18,14 +18,14 @@ pub struct GoogleTokenInfo {
 }
 
 /// Respuesta de login exitoso: JWT propio del sistema.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct LoginResponse {
     pub token: String,
     pub user: AuthUserInfo,
 }
 
 /// Info pública del usuario autenticado.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct AuthUserInfo {
     pub id: uuid::Uuid,
     pub email: String,

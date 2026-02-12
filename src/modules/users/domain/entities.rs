@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::shared::auth::Role;
 
 /// Entidad de dominio: Usuario del sistema.
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -20,7 +20,7 @@ pub struct User {
 }
 
 /// DTO para crear un nuevo usuario.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateUserDto {
     pub email: String,
     pub display_name: String,
@@ -30,7 +30,7 @@ pub struct CreateUserDto {
 }
 
 /// DTO para actualizar un usuario existente.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateUserDto {
     pub display_name: Option<String>,
     pub photo_url: Option<String>,
@@ -40,7 +40,7 @@ pub struct UpdateUserDto {
 }
 
 /// Respuesta pública de usuario (sin campos internos sensibles).
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct UserResponse {
     pub id: Uuid,
     pub email: String,

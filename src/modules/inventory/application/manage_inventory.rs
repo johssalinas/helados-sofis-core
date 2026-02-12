@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::inventory::domain::entities::{AddStockDto, InventoryItem};
 use crate::modules::inventory::domain::repositories::InventoryRepository;
+use crate::shared::errors::AppError;
 
 pub async fn list_all(repo: &Arc<dyn InventoryRepository>) -> Result<Vec<InventoryItem>, AppError> {
     repo.find_all().await
@@ -16,11 +16,15 @@ pub async fn list_by_freezer(
     repo.find_by_freezer(freezer_id).await
 }
 
-pub async fn list_sellable(repo: &Arc<dyn InventoryRepository>) -> Result<Vec<InventoryItem>, AppError> {
+pub async fn list_sellable(
+    repo: &Arc<dyn InventoryRepository>,
+) -> Result<Vec<InventoryItem>, AppError> {
     repo.find_sellable().await
 }
 
-pub async fn list_low_stock(repo: &Arc<dyn InventoryRepository>) -> Result<Vec<InventoryItem>, AppError> {
+pub async fn list_low_stock(
+    repo: &Arc<dyn InventoryRepository>,
+) -> Result<Vec<InventoryItem>, AppError> {
     repo.find_low_stock().await
 }
 

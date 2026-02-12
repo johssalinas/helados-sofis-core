@@ -1,6 +1,14 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use serde::Serialize;
 use serde_json::json;
+
+/// Cuerpo de respuesta de error para documentación OpenAPI.
+#[derive(Debug, Serialize, utoipa::ToSchema)]
+pub struct ErrorBody {
+    /// Mensaje de error.
+    pub error: String,
+}
 
 /// Error unificado de la aplicación.
 #[derive(Debug, thiserror::Error)]
@@ -54,7 +62,10 @@ impl IntoResponse for AppError {
             }
             AppError::Sqlx(e) => {
                 tracing::error!("Database error: {e}");
-                (StatusCode::INTERNAL_SERVER_ERROR, "Error de base de datos".into())
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Error de base de datos".into(),
+                )
             }
             AppError::SerdeJson(e) => {
                 tracing::error!("Serialization error: {e}");

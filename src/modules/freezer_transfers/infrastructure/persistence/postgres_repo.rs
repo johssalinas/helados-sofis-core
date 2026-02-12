@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::freezer_transfers::domain::entities::*;
 use crate::modules::freezer_transfers::domain::repositories::FreezerTransferRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgFreezerTransferRepository {
     pool: PgPool,
@@ -27,16 +27,12 @@ impl FreezerTransferRepository for PgFreezerTransferRepository {
         .await?)
     }
 
-    async fn find_by_id_with_items(
-        &self,
-        id: Uuid,
-    ) -> Result<Option<TransferWithItems>, AppError> {
-        let transfer = sqlx::query_as::<_, FreezerTransfer>(
-            "SELECT * FROM freezer_transfers WHERE id = $1",
-        )
-        .bind(id)
-        .fetch_optional(&self.pool)
-        .await?;
+    async fn find_by_id_with_items(&self, id: Uuid) -> Result<Option<TransferWithItems>, AppError> {
+        let transfer =
+            sqlx::query_as::<_, FreezerTransfer>("SELECT * FROM freezer_transfers WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?;
 
         match transfer {
             Some(t) => {
@@ -47,10 +43,7 @@ impl FreezerTransferRepository for PgFreezerTransferRepository {
                 .fetch_all(&self.pool)
                 .await?;
 
-                Ok(Some(TransferWithItems {
-                    transfer: t,
-                    items,
-                }))
+                Ok(Some(TransferWithItems { transfer: t, items }))
             }
             None => Ok(None),
         }
@@ -144,12 +137,11 @@ impl FreezerTransferRepository for PgFreezerTransferRepository {
 
             // Sumar al congelador destino (UPSERT)
             // Necesitamos el provider_id del item origen
-            let provider_id = sqlx::query_scalar::<_, Uuid>(
-                "SELECT provider_id FROM inventory WHERE id = $1",
-            )
-            .bind(source_inv)
-            .fetch_one(&mut *tx)
-            .await?;
+            let provider_id =
+                sqlx::query_scalar::<_, Uuid>("SELECT provider_id FROM inventory WHERE id = $1")
+                    .bind(source_inv)
+                    .fetch_one(&mut *tx)
+                    .await?;
 
             sqlx::query(
                 r#"

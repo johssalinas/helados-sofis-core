@@ -1,12 +1,10 @@
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::worker_trips::domain::entities::*;
 use crate::modules::worker_trips::domain::repositories::WorkerTripRepository;
+use crate::shared::errors::AppError;
 
-pub async fn list_active(
-    repo: &dyn WorkerTripRepository,
-) -> Result<Vec<WorkerTrip>, AppError> {
+pub async fn list_active(repo: &dyn WorkerTripRepository) -> Result<Vec<WorkerTrip>, AppError> {
     repo.find_active().await
 }
 
@@ -49,8 +47,6 @@ pub async fn complete_trip(
     repo.complete_trip(trip_id, dto, created_by).await
 }
 
-pub async fn todays_returned(
-    repo: &dyn WorkerTripRepository,
-) -> Result<Vec<WorkerTrip>, AppError> {
+pub async fn todays_returned(repo: &dyn WorkerTripRepository) -> Result<Vec<WorkerTrip>, AppError> {
     repo.find_todays_returned().await
 }

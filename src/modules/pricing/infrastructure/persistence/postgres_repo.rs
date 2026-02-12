@@ -3,9 +3,9 @@ use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::pricing::domain::entities::{CreatePriceDto, PriceHistory};
 use crate::modules::pricing::domain::repositories::PriceRepository;
+use crate::shared::errors::AppError;
 
 pub struct PgPriceRepository {
     pool: PgPool,
@@ -64,7 +64,11 @@ impl PriceRepository for PgPriceRepository {
         .await?)
     }
 
-    async fn create(&self, dto: &CreatePriceDto, created_by: Uuid) -> Result<PriceHistory, AppError> {
+    async fn create(
+        &self,
+        dto: &CreatePriceDto,
+        created_by: Uuid,
+    ) -> Result<PriceHistory, AppError> {
         let commission = dto.price_route - dto.price_base;
         Ok(sqlx::query_as::<_, PriceHistory>(
             r#"

@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::{CreatePriceDto, PriceHistory};
+use crate::shared::errors::AppError;
 
 /// Puerto de salida: persistencia de precios.
 #[async_trait]
@@ -26,7 +26,11 @@ pub trait PriceRepository: Send + Sync {
     ) -> Result<Option<PriceHistory>, AppError>;
 
     /// Crear un nuevo registro de precio (nunca se actualizan los existentes).
-    async fn create(&self, dto: &CreatePriceDto, created_by: Uuid) -> Result<PriceHistory, AppError>;
+    async fn create(
+        &self,
+        dto: &CreatePriceDto,
+        created_by: Uuid,
+    ) -> Result<PriceHistory, AppError>;
 
     /// Obtener historial completo de precios de un combo.
     async fn get_history(

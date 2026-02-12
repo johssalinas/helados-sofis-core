@@ -5,10 +5,10 @@ edition = "2021"
 
 [dependencies]
 # Web framework
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.8", features = ["macros"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.4"
-tower-http = { version = "0.5", features = ["cors", "trace"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Database
 sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "rust_decimal", "json"] }
@@ -36,3 +36,7 @@ thiserror = "1"
 
 # Async trait
 async-trait = "0.1"
+
+# API Documentation
+utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono", "decimal"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }

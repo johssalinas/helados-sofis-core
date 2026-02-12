@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use crate::shared::errors::AppError;
 use crate::modules::owner_sales::domain::entities::*;
 use crate::modules::owner_sales::domain::repositories::OwnerSaleRepository;
+use crate::shared::errors::AppError;
+use uuid::Uuid;
 
 pub async fn list_sales(
     repo: &dyn OwnerSaleRepository,

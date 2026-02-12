@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::pricing::domain::entities::{CreatePriceDto, PriceHistory};
 use crate::modules::pricing::domain::repositories::PriceRepository;
+use crate::shared::errors::AppError;
 
 /// Caso de uso: Crear un nuevo precio (Temporal Data — NUNCA actualizar).
 pub async fn create_price(

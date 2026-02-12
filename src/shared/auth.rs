@@ -2,7 +2,6 @@ use axum::{
     extract::{FromRef, FromRequestParts},
     http::request::Parts,
 };
-use async_trait::async_trait;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -12,7 +11,19 @@ use super::errors::AppError;
 // ─── Roles ──────────────────────────────────────────────
 
 /// Roles del sistema. Owner tiene acceso total, Admin acceso operativo.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, sqlx::Type)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Serialize,
+    Deserialize,
+    sqlx::Type,
+    utoipa::ToSchema,
+)]
 #[sqlx(type_name = "VARCHAR")]
 #[sqlx(rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
@@ -51,15 +62,20 @@ impl Role {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
-    pub sub: Uuid,       // user id
+    pub sub: Uuid, // user id
     pub email: String,
     pub role: Role,
-    pub exp: usize,      // expiration (unix timestamp)
-    pub iat: usize,      // issued at
+    pub exp: usize, // expiration (unix timestamp)
+    pub iat: usize, // issued at
 }
 
 /// Genera un JWT para el usuario autenticado.
-pub fn create_jwt(user_id: Uuid, email: &str, role: Role, secret: &str) -> Result<String, AppError> {
+pub fn create_jwt(
+    user_id: Uuid,
+    email: &str,
+    role: Role,
+    secret: &str,
+) -> Result<String, AppError> {
     let now = chrono::Utc::now().timestamp() as usize;
     let claims = Claims {
         sub: user_id,
@@ -102,7 +118,6 @@ pub struct AppState {
 #[derive(Debug, Clone)]
 pub struct AuthUser(pub Claims);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for AuthUser
 where
     AppState: FromRef<S>,
@@ -110,10 +125,7 @@ where
 {
     type Rejection = AppError;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let jwt_secret = AppState::from_ref(state).config.jwt_secret.clone();
 
         let auth_header = parts

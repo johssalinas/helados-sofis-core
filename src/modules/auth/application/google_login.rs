@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use crate::shared::auth::{create_jwt, Role};
-use crate::shared::errors::AppError;
 use crate::modules::auth::domain::entities::{AuthUserInfo, GoogleTokenInfo, LoginResponse};
 use crate::modules::users::domain::entities::CreateUserDto;
 use crate::modules::users::domain::repositories::UserRepository;
+use crate::shared::auth::{create_jwt, Role};
+use crate::shared::errors::AppError;
 
 /// Caso de uso: Login con Google OAuth.
 ///

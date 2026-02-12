@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::*;
+use crate::shared::errors::AppError;
 
 #[async_trait]
 pub trait WorkerTripRepository: Send + Sync {
@@ -10,7 +10,11 @@ pub trait WorkerTripRepository: Send + Sync {
     async fn find_active(&self) -> Result<Vec<WorkerTrip>, AppError>;
 
     /// Listar viajes de un trabajador.
-    async fn find_by_worker(&self, worker_id: Uuid, limit: i64) -> Result<Vec<WorkerTrip>, AppError>;
+    async fn find_by_worker(
+        &self,
+        worker_id: Uuid,
+        limit: i64,
+    ) -> Result<Vec<WorkerTrip>, AppError>;
 
     /// Obtener un viaje con todos sus items.
     async fn find_by_id_with_items(&self, id: Uuid) -> Result<Option<TripWithItems>, AppError>;

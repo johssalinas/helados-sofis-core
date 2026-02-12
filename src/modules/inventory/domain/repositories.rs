@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use super::entities::InventoryItem;
+use crate::shared::errors::AppError;
 
 /// Puerto de salida: persistencia de inventario.
 #[async_trait]

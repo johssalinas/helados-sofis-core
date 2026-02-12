@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct OwnerSale {
     pub id: Uuid,
     pub owner_id: Uuid,
@@ -18,7 +18,7 @@ pub struct OwnerSale {
     pub created_by: Uuid,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct OwnerSaleLoadedItem {
     pub id: Uuid,
     pub sale_id: Uuid,
@@ -31,7 +31,7 @@ pub struct OwnerSaleLoadedItem {
     pub is_deformed: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct OwnerSaleReturnedItem {
     pub id: Uuid,
     pub sale_id: Uuid,
@@ -42,14 +42,14 @@ pub struct OwnerSaleReturnedItem {
     pub destination_freezer_id: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateOwnerSaleDto {
     pub departure_time: DateTime<Utc>,
     pub route_id: Option<Uuid>,
     pub loaded_items: Vec<OwnerLoadedItemDto>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct OwnerLoadedItemDto {
     pub inventory_id: Uuid,
     pub product_id: Uuid,
@@ -60,12 +60,12 @@ pub struct OwnerLoadedItemDto {
     pub is_deformed: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CompleteOwnerSaleDto {
     pub returned_items: Vec<OwnerReturnedItemDto>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct OwnerReturnedItemDto {
     pub product_id: Uuid,
     pub flavor_id: Uuid,
@@ -74,7 +74,7 @@ pub struct OwnerReturnedItemDto {
     pub destination_freezer_id: Uuid,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct OwnerSaleWithItems {
     #[serde(flatten)]
     pub sale: OwnerSale,

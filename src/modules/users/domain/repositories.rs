@@ -22,7 +22,8 @@ pub trait UserRepository: Send + Sync {
     async fn find_active(&self) -> Result<Vec<User>, AppError>;
 
     /// Crear un nuevo usuario.
-    async fn create(&self, dto: &CreateUserDto, created_by: Option<Uuid>) -> Result<User, AppError>;
+    async fn create(&self, dto: &CreateUserDto, created_by: Option<Uuid>)
+        -> Result<User, AppError>;
 
     /// Actualizar un usuario existente.
     async fn update(&self, id: Uuid, dto: &UpdateUserDto) -> Result<User, AppError>;

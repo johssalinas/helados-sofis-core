@@ -1,13 +1,11 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::purchases::domain::entities::{CreatePurchaseDto, Purchase, PurchaseWithItems};
 use crate::modules::purchases::domain::repositories::PurchaseRepository;
+use crate::shared::errors::AppError;
 
-pub async fn list_purchases(
-    repo: &Arc<dyn PurchaseRepository>,
-) -> Result<Vec<Purchase>, AppError> {
+pub async fn list_purchases(repo: &Arc<dyn PurchaseRepository>) -> Result<Vec<Purchase>, AppError> {
     repo.find_all().await
 }
 

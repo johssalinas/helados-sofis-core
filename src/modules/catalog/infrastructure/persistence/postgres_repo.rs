@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::shared::errors::AppError;
 use crate::modules::catalog::domain::entities::*;
 use crate::modules::catalog::domain::repositories::*;
+use crate::shared::errors::AppError;
 
 // ═══════════════════════════════════════════════════════════
 // Products
@@ -23,24 +23,30 @@ impl PgProductRepository {
 #[async_trait]
 impl ProductRepository for PgProductRepository {
     async fn find_all(&self) -> Result<Vec<Product>, AppError> {
-        Ok(sqlx::query_as::<_, Product>("SELECT * FROM products ORDER BY name")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Product>("SELECT * FROM products ORDER BY name")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_active(&self) -> Result<Vec<Product>, AppError> {
-        Ok(sqlx::query_as::<_, Product>(
-            "SELECT * FROM products WHERE active = TRUE ORDER BY name",
+        Ok(
+            sqlx::query_as::<_, Product>(
+                "SELECT * FROM products WHERE active = TRUE ORDER BY name",
+            )
+            .fetch_all(&self.pool)
+            .await?,
         )
-        .fetch_all(&self.pool)
-        .await?)
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Product>, AppError> {
-        Ok(sqlx::query_as::<_, Product>("SELECT * FROM products WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Product>("SELECT * FROM products WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
     async fn create(&self, dto: &CreateProductDto, created_by: Uuid) -> Result<Product, AppError> {
@@ -53,7 +59,12 @@ impl ProductRepository for PgProductRepository {
         .await?)
     }
 
-    async fn update(&self, id: Uuid, dto: &UpdateProductDto, modified_by: Uuid) -> Result<Product, AppError> {
+    async fn update(
+        &self,
+        id: Uuid,
+        dto: &UpdateProductDto,
+        modified_by: Uuid,
+    ) -> Result<Product, AppError> {
         Ok(sqlx::query_as::<_, Product>(
             r#"
             UPDATE products SET
@@ -91,9 +102,11 @@ impl PgFlavorRepository {
 #[async_trait]
 impl FlavorRepository for PgFlavorRepository {
     async fn find_all(&self) -> Result<Vec<Flavor>, AppError> {
-        Ok(sqlx::query_as::<_, Flavor>("SELECT * FROM flavors ORDER BY name")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Flavor>("SELECT * FROM flavors ORDER BY name")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_by_product(&self, product_id: Uuid) -> Result<Vec<Flavor>, AppError> {
@@ -106,10 +119,12 @@ impl FlavorRepository for PgFlavorRepository {
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Flavor>, AppError> {
-        Ok(sqlx::query_as::<_, Flavor>("SELECT * FROM flavors WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Flavor>("SELECT * FROM flavors WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
     async fn create(&self, dto: &CreateFlavorDto, created_by: Uuid) -> Result<Flavor, AppError> {
@@ -158,9 +173,11 @@ impl PgProviderRepository {
 #[async_trait]
 impl ProviderRepository for PgProviderRepository {
     async fn find_all(&self) -> Result<Vec<Provider>, AppError> {
-        Ok(sqlx::query_as::<_, Provider>("SELECT * FROM providers ORDER BY name")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Provider>("SELECT * FROM providers ORDER BY name")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_active(&self) -> Result<Vec<Provider>, AppError> {
@@ -172,13 +189,19 @@ impl ProviderRepository for PgProviderRepository {
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Provider>, AppError> {
-        Ok(sqlx::query_as::<_, Provider>("SELECT * FROM providers WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Provider>("SELECT * FROM providers WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
-    async fn create(&self, dto: &CreateProviderDto, created_by: Uuid) -> Result<Provider, AppError> {
+    async fn create(
+        &self,
+        dto: &CreateProviderDto,
+        created_by: Uuid,
+    ) -> Result<Provider, AppError> {
         Ok(sqlx::query_as::<_, Provider>(
             r#"
             INSERT INTO providers (name, contact_info, created_by) 
@@ -229,24 +252,28 @@ impl PgWorkerRepository {
 #[async_trait]
 impl WorkerRepository for PgWorkerRepository {
     async fn find_all(&self) -> Result<Vec<Worker>, AppError> {
-        Ok(sqlx::query_as::<_, Worker>("SELECT * FROM workers ORDER BY name")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Worker>("SELECT * FROM workers ORDER BY name")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_active(&self) -> Result<Vec<Worker>, AppError> {
-        Ok(sqlx::query_as::<_, Worker>(
-            "SELECT * FROM workers WHERE active = TRUE ORDER BY name",
+        Ok(
+            sqlx::query_as::<_, Worker>("SELECT * FROM workers WHERE active = TRUE ORDER BY name")
+                .fetch_all(&self.pool)
+                .await?,
         )
-        .fetch_all(&self.pool)
-        .await?)
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Worker>, AppError> {
-        Ok(sqlx::query_as::<_, Worker>("SELECT * FROM workers WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Worker>("SELECT * FROM workers WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
     async fn create(&self, dto: &CreateWorkerDto, created_by: Uuid) -> Result<Worker, AppError> {
@@ -303,16 +330,20 @@ impl PgRouteRepository {
 #[async_trait]
 impl RouteRepository for PgRouteRepository {
     async fn find_all(&self) -> Result<Vec<Route>, AppError> {
-        Ok(sqlx::query_as::<_, Route>("SELECT * FROM routes ORDER BY usage_count DESC")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Route>("SELECT * FROM routes ORDER BY usage_count DESC")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Route>, AppError> {
-        Ok(sqlx::query_as::<_, Route>("SELECT * FROM routes WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Route>("SELECT * FROM routes WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
     async fn create(&self, dto: &CreateRouteDto, created_by: Uuid) -> Result<Route, AppError> {
@@ -343,16 +374,20 @@ impl PgFreezerRepository {
 #[async_trait]
 impl FreezerRepository for PgFreezerRepository {
     async fn find_all(&self) -> Result<Vec<Freezer>, AppError> {
-        Ok(sqlx::query_as::<_, Freezer>("SELECT * FROM freezers ORDER BY number")
-            .fetch_all(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Freezer>("SELECT * FROM freezers ORDER BY number")
+                .fetch_all(&self.pool)
+                .await?,
+        )
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Freezer>, AppError> {
-        Ok(sqlx::query_as::<_, Freezer>("SELECT * FROM freezers WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await?)
+        Ok(
+            sqlx::query_as::<_, Freezer>("SELECT * FROM freezers WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?,
+        )
     }
 
     async fn create(&self, dto: &CreateFreezerDto, created_by: Uuid) -> Result<Freezer, AppError> {
