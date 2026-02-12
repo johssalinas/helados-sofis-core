@@ -1,5 +1,5 @@
-mod modules;
-mod shared;
+use helados_sofis_core::modules;
+use helados_sofis_core::shared;
 
 use std::sync::Arc;
 
