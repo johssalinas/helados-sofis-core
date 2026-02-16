@@ -1,4 +1,7 @@
+#![allow(dead_code)]
+
 use sqlx::PgPool;
+
 use std::sync::atomic::{AtomicU32, Ordering};
 
 static DB_COUNTER: AtomicU32 = AtomicU32::new(0);

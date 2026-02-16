@@ -19,7 +19,6 @@ impl PgWorkerPaymentRepository {
 
 #[derive(sqlx::FromRow)]
 struct WorkerDebt {
-    worker_id: Uuid,
     current_debt: Decimal,
 }
 
@@ -76,7 +75,7 @@ impl WorkerPaymentRepository for PgWorkerPaymentRepository {
 
         // 2. Obtener deuda actual del trabajador
         let worker = sqlx::query_as::<_, WorkerDebt>(
-            "SELECT id as worker_id, current_debt FROM workers WHERE id = $1",
+            "SELECT current_debt FROM workers WHERE id = $1",
         )
         .bind(trip.worker_id)
         .fetch_one(&mut *tx)

@@ -1,15 +1,15 @@
 services:
-  postgres-test:
+  postgres-dev:
     image: postgres:16-alpine
-    container_name: helados-sofis-test-db
+    container_name: helados-sofis-dev-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: helados_sofis_test
+      POSTGRES_DB: helados_sofis
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - helados_test_data:/var/lib/postgresql/data
+      - helados_dev_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
@@ -17,4 +17,4 @@ services:
       retries: 10
 
 volumes:
-  helados_test_data:
+  helados_dev_data:
